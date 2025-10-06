@@ -43,8 +43,5 @@ smart-monochrome/
 5. Images and icons stay original, so the site remains clear and visually pleasing.
 6. The extension remembers your choice for that site, so it auto-applies next time.
 
-## 🖼️ Screenshots
-(Add screenshots of your popup and example site here)
-
 ## ⚖️ License
 MIT License – feel free to use, modify, and share.
