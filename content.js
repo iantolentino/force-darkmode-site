@@ -3,13 +3,12 @@
   const STYLE_ID = "smart-monochrome-style";
 
   const MONOCHROME_CSS = `
-/* Smart Monochrome forced dark mode */
+/* Smart Monochrome forced dark mode (no image/icon recolor) */
 html, body, #__next, .app, .root {
   background: #000 !important;
   color: #fff !important;
 }
 
-/* Force readable text and neutral backgrounds */
 *,
 *::before,
 *::after {
@@ -20,16 +19,16 @@ html, body, #__next, .app, .root {
   border-color: #333 !important;
 }
 
-/* Set common container backgrounds to black */
+/* Common containers */
 html, body, div, section, article, header, footer, main, nav, aside, ul, li, p, span, table, tr, td, th, figure {
   background-color: #000 !important;
   color: #fff !important;
 }
 
-/* Links — keep readable but monochrome */
+/* Links */
 a { color: #ddd !important; text-decoration-color: #555 !important; }
 
-/* Inputs and controls */
+/* Inputs & controls */
 input, textarea, select, button {
   background-color: #111 !important;
   color: #fff !important;
@@ -37,50 +36,36 @@ input, textarea, select, button {
   caret-color: #fff !important;
 }
 
-/* Pre/code areas */
+/* Code blocks */
 pre, code, kbd {
   background: #040404 !important;
   color: #fff !important;
   border: 1px solid #222 !important;
 }
 
-/* Images, video, canvas, svgs — convert to grayscale and dim so they don't clash */
-img, picture, video, canvas {
-  filter: grayscale(100%) contrast(0.95) brightness(0.6) !important;
-  opacity: 0.95 !important;
+/* DO NOT alter images, videos, icons */
+img, picture, video, canvas, svg, svg * {
+  filter: none !important;
+  opacity: 1 !important;
   background: transparent !important;
+  color: inherit !important;
 }
 
-/* SVG strokes/fills */
-svg, svg * { fill: #fff !important; stroke: #fff !important; }
-
-/* Remove distracting backgrounds like gradients or images */
+/* Remove gradient/image backgrounds */
 *[style*="background"], *[style*="background-image"] {
   background-image: none !important;
   background-color: #000 !important;
 }
 
-/* Keep pseudo-element text visible */
-*::before, *::after { color: inherit !important; background: transparent !important; }
-
-/* Keep media controls readable */
-video::-webkit-media-controls { filter: none !important; }
-
-/* Prevent some sites from hiding content by forcing black */
 html, body { background-color: #000 !important; }
 `;
 
   function injectMonochrome() {
     if (document.getElementById(STYLE_ID)) return;
-    try {
-      const s = document.createElement("style");
-      s.id = STYLE_ID;
-      s.textContent = MONOCHROME_CSS;
-      (document.head || document.documentElement).appendChild(s);
-    } catch (err) {
-      // Fail silently if DOM is restricted
-      console.warn("Monochrome inject failed:", err);
-    }
+    const s = document.createElement("style");
+    s.id = STYLE_ID;
+    s.textContent = MONOCHROME_CSS;
+    (document.head || document.documentElement).appendChild(s);
   }
 
   function removeMonochrome() {
@@ -88,27 +73,22 @@ html, body { background-color: #000 !important; }
     if (el) el.remove();
   }
 
-  // Apply if stored for this hostname
+  // Apply if saved
   chrome.storage.sync.get(HOSTNAME, (res) => {
     if (res && res[HOSTNAME]) injectMonochrome();
   });
 
-  // Listen for popup messages
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (!msg || !msg.type) return;
+  // Listen for popup toggle
+  chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === "toggleMonochrome") {
-      if (msg.enabled) injectMonochrome();
-      else removeMonochrome();
-      sendResponse({ok: true});
+      msg.enabled ? injectMonochrome() : removeMonochrome();
     }
   });
 
-  // React to storage changes (so multiple windows sync)
+  // Sync with storage changes
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== "sync") return;
-    if (changes[HOSTNAME]) {
-      if (changes[HOSTNAME].newValue) injectMonochrome();
-      else removeMonochrome();
+    if (area === "sync" && changes[HOSTNAME]) {
+      changes[HOSTNAME].newValue ? injectMonochrome() : removeMonochrome();
     }
   });
 })();
