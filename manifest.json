@@ -1,16 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "Smart Dark Mode",
-  "version": "1.0",
-  "description": "Enable dark mode on websites without built-in dark themes. Saves preferences per site.",
+  "name": "Smart Monochrome (Forced Dark)",
+  "version": "1.2",
+  "description": "Force a black & white dark mode on sites. Text => white, remaining => black. Saves per-site preference.",
   "permissions": [
     "storage",
     "scripting",
     "activeTab"
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -20,7 +20,11 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
-  ]
+  ],
+  "icons": {
+    "128": "icons/icon128.png"
+  }
 }
